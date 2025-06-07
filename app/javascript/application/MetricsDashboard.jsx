@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from "react";
 
-const MetricsDashboard = ({ memberId }) => {
+const MetricsDashboard = () => {
   const [metrics, setMetrics] = useState({});
   const [period, setPeriod] = useState("last_7_days");
+   
+  const getMemberIdFromUrl = () => {
+    const pathParts = window.location.pathname.split("/"); // ["", "members", "12"]
+    const membersIndex = pathParts.indexOf("members");
+  
+    if (membersIndex !== -1 && pathParts.length > membersIndex + 1) {
+      return pathParts[membersIndex + 1]; // "12"
+    }
+    return null;
+  };
 
   useEffect(() => {
+    let memberId = getMemberIdFromUrl();
+
+    if (!memberId) {
+      // setError("No member ID found in the URL.");
+      memberId = 1;
+    }
+
     fetch(`/api/members/${memberId}/metrics?period=${period}`)
       .then((res) => res.json())
       .then((data) => setMetrics(data));
-  }, [period, memberId]);
+  }, [period]);
 
   return (
     <div>

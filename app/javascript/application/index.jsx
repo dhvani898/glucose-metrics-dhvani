@@ -6,7 +6,7 @@ const rootElement = document.getElementById("root");
 
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<MetricsDashboard memberId={1} />);
+  root.render(<MetricsDashboard memberId={2} />);
 }
 
 // const App = () => {

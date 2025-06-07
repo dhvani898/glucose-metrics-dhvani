@@ -1,135 +1,155 @@
+
 # Glucose Metric Calculator
 
-Thank you for participating in our take-home interview exercise. This project is designed to let you show off your skills in developing a real world application. We understand that your time is valuable, so we recommend that you spend no more than two hours on this assignment. Focus on demonstrating your thought process and approach, even if you do not completely finish the task. It's perfectly acceptable to leave parts of the assignment unfinished. Prioritize quality over quantity in your submission.
+This full-stack Rails + React application calculates and displays glucose metrics from continuous glucose monitoring data. It is built to support health coaches by offering real-time insights into a member’s glucose activity over time.
 
-## Guidelines
-1. Complete this exercise independently.
-2. Use any tools and resources you typically use in your daily work. This includes AI coding assistants like GitHub Copilot or ChatGPT. Please include a summary of your prompts your submission.
-3. Please don’t spend more than 2 hours working on this exercise.
-4. Completion of this assignment is not required. Please focus on quality rather than finishing every task.
-5. Utilize this repository for building the required components.
+---
 
-## Project Overview
-Continuous glucose monitoring generates a series of data points representing a person's glucose levels over time. Your goal is to create a full-stack application that calculates and displays glucose metrics from a member’s glucose data. This information will help health coaches make informed decisions about member’s care.
+## Features
 
-## Requirements
-Develop a full-stack application that features a glucose metrics dashboard. The application should calculate and display the following glucose metrics for a given time period:
-- Average glucose level
-- Time below range
-- Time above range
+- Calculates Average Glucose (mg/dL)
+- Calculates Time Above Range (% > 180 mg/dL)
+- Calculates Time Below Range (% < 70 mg/dL)
+- Computes each metric for:
+  - Last 7 Days
+  - Current Month
+- Compares each metric against the prior period (Week-to-Week, Month-to-Month)
+- Exposes metrics via API
+- Frontend React dashboard with dynamic period switching
 
-Each metric should be calculated for two different time frames: 
-- The last 7 days
-- The current calendar month
+---
 
-Additionally, the application should calculate the change in each metric from the prior period. For example, this includes comparing this month's average glucose level to last month's. Please refer to the definitions provided below for clarity on each metric.
+## React Dashboard
 
-## Definitions
-- **Average Glucose (mg/dL):** The sum of all glucose values in a specific time frame (week/month) divided by the total number of readings available in that time frame.
-- **Time Above Range (%):** The percentage of glucose readings in a specific time frame (week/month) that are above 180 mg/dL.
-- **Time Below Range (%):** The percentage of glucose readings in a specific time frame (week/month) that are below 70 mg/dL. 
-- **Last 7 Days:** The “Last 7 days” includes available glucose data from 12:00:00am to 11:59:59pm local time on the current day and the 6 prior days. 
-- **Month:** A “month” of glucose data includes all available glucose readings from 12:00:00am local time on the first day of a calendar month to 11:59:59pm local time on the last day of that calendar month.
-- **Change Since Prior Period (% or mg/dL):** The difference between a metric for the current time frame vs. the previous time frame (for example this month’s time in range compared to last month’s). Obtained by subtracting the current metric from the previous one. If the metrics being compared are percentages, the change will also be shown as a percentage.
+Visit `http://localhost:3000` to view a dashboard showing glucose metrics for a test member.
 
-## Technical Requirements
-- Build this application using Ruby and Ruby on Rails.
-- For the purpose of this exercise, use any active record compatible database. 
-- Each metric should be associated with the member it was calculated for.
-- Bonus:
-  - Implement an API that can return metrics for a given member and time frame.
-  - Consider caching strategies for performance enhancement.
+- You can switch between:
+  - **Last 7 Days**
+  - **Current Month**
+- All metrics update automatically via API.
 
-## What We Are Looking For
-Here’s what we value in this assignment:
-- Functionality as outlined above.
-- Best practices and clean, maintainable code.
-- If you make any assumptions, please document them in your README.
-- Highlight any improvements you’d make with more time in your README. You’ll have the chance to discuss these during the next onsite interview.
+---
 
-## Submission Guidelines
-- Project Setup:
-  - Set up your local development environment as needed.
-  - Commit all changes to this repository.
-- Submit Your Work:
-  - Once your solution is complete and you’re ready to submit it, please create a Merge Request (Pull Request) against this repository.
-  - Export AI prompt summaries and include them in the README file.
-    - ChatGPT prompts can be exported to markdown (.md) format by clicking export in the top right corner of the chat window
-    - Cursor prompts can be exported using https://github.com/thomas-pedersen/cursor-chat-browser
-  - Email your submission to interview-submissions@omadahealth.com, cc'ing the recruiting team.
-  - **Timeline: You have 3 days to complete and submit the assignment.** If you have questions or need assistance, contact interview-submissions@omadahealth.com.
+## API Endpoints
 
-## Prerequisites
 
-- Ruby 3.1.3
-- Rails 7.1.5
-- Node.js 18 or higher
-- Yarn package manager
-- SQLite3
-- Bundler
+The darshboard or Homepage (`/index`) will by default show the details for member with ID: 1
+For details of other members, use `/api/members/:id/metrics` url
 
-## Technology Stack
+### Get Metrics for a Member
 
-- **Backend**: Ruby on Rails 7.1.5
-- **Frontend**: React 19
-- **Database**: SQLite3
-- **JavaScript Bundler**: esbuild
-- **Testing**: RSpec, Factory Bot
+```http
+GET /api/members/:id/metrics?period=last_7_days
+GET /api/members/:id/metrics?period=month
+```
 
-## Setup
+**Example:**
 
-### Local Development Setup
+```bash
+curl 'http://localhost:3000/api/members/1/metrics?period=month'
+```
 
-1. Install Ruby dependencies:
+Returns:
+
+```json
+{
+  "average_glucose": 153.2,
+  "time_above_range": 33.33,
+  "time_below_range": 16.67,
+  "average_glucose_change": -5.1,
+  "time_above_range_change": 6.67,
+  "time_below_range_change": -8.33
+}
+```
+
+---
+
+## Assumptions
+
+- Metrics are dynamically calculated per `Member` using ActiveRecord queries.
+- Glucose values are in `mg/dL`.
+- `tested_at` is stored in local time; `tz_offset` is collected but not used in calculations.
+- All "last 7 days" calculations include today and the 6 prior days.
+- Change from previous period is `current - previous` (can be negative).
+- Metrics are not stored permanently in the DB; they are calculated on the fly.
+- The ID passed in the url is Member ID and it is dynamically fetched from the url to provide the right data
+
+---
+
+## Setup Instructions
+
+1. **Install Ruby and dependencies:**
+
 ```bash
 bundle install
 ```
 
-2. Install JavaScript dependencies:
+2. **Install JavaScript dependencies:**
+
 ```bash
 yarn install
 ```
 
-3. Build JavaScript assets:
+3. **Build JS assets:**
+
 ```bash
 yarn build
 ```
 
-4. Set up the database:
+4. **Set up the database:**
+
 ```bash
-bundle exec rails db:create db:setup db:seed
+bundle exec rails db:create db:setup
 ```
 
-5. Start the development server:
+5. **Start the development server:**
+
 ```bash
 bin/dev
 ```
 
-The application will be available at `http://localhost:3000`
+Visit `http://localhost:3000` in your browser.
 
-## Development
+6. **Members and Glucose levels are added in sqlite3 database using rails console**
 
-### Frontend Development
-
-The application uses React for the frontend with esbuild for bundling. Key files and directories:
-
-- `app/javascript/application.js` - Main JavaScript entry point
-- `app/javascript/application/` - React components directory
-- `app/assets/builds/` - Compiled JavaScript assets
-
-#### Building JavaScript Assets
-
-For development with automatic rebuilding:
-```bash
-yarn build:watch
+```rails console
+member = Member.create(name: "Dhvani")
+member.save
 ```
 
-The watch mode will automatically rebuild your JavaScript assets whenever you make changes to your React components or JavaScript files.
+7.  **To add GlucoseLevels for a given member**
 
-### Testing
-
-The project uses RSpec for testing. To run the test suite:
-
-```bash
-bundle exec rspec
 ```
+member = Member.find_by(name: "Dhvani")
+member.glucose_levels.create(value: 100, tested_at: Time.current, tz_offset: "+02:00")
+member.glucose_levels.create(value: 105, tested_at: 2.hours.ago, tz_offset: "+02:00")
+```
+
+---
+
+## AI Prompt Summary
+
+This project was implemented with assistance from ChatGPT. AI was used for:
+
+- Building test cases using RSpec
+- Debugging Build issue to start Ruby on  Rails
+- Debugging routing errors. The routes initialized were not matching, and AI suggested changes in routes.rb file
+- Commands to access and edit sqlite3 database for testing
+- Fetching id from url windows function
+
+---
+
+## Improvements with More Time
+
+- Persist computed metrics into a `metrics` table for historical review
+- Add proper timezone support using `tz_offset`
+- Allow login-based member switching on the frontend
+- Add caching for repeated metric queries
+- Write full integration tests for API + frontend
+
+---
+
+## Author
+
+Dhvani Patel  
+GitHub: [dhvani898](https://github.com/dhvani898)
